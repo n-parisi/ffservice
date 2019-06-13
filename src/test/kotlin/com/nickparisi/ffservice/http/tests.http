@@ -1,0 +1,26 @@
+### Send POST request with json body
+POST http://localhost:8080/onboard
+Content-Type: application/json
+
+{
+  "leagueId": 517437,
+  "season": 2018
+}
+
+### Get request with a header
+GET http://localhost:8080/team/517437/2018
+Accept: application/json
+
+### Get request with a header
+GET http://localhost:8080/team/14
+Accept: application/json
+
+### Get request with a header
+GET http://localhost:8080/rostersnap/teamId/14
+Accept: application/json
+
+### Get request with a header
+GET http://localhost:8080/rostersnap/47
+Accept: application/json
+
+###
