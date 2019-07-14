@@ -7,16 +7,19 @@ import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
 import org.springframework.web.client.getForEntity
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.nickparisi.ffservice.entity.enums.Position
 import com.nickparisi.ffservice.entity.player.Player
 import com.nickparisi.ffservice.entity.rostersnapshot.RosterSnapshot
 import com.nickparisi.ffservice.entity.rostersnapshot.RosterSnapshotRepository
 import com.nickparisi.ffservice.entity.team.Team
 import com.nickparisi.ffservice.entity.team.TeamRepository
+import com.nickparisi.ffservice.entity.enums.RosterSlot
 import org.springframework.beans.factory.annotation.Autowired
+import java.time.LocalDate
 
 @Service
 class OnboardService(@Autowired
-                     restTemplateBuilder: RestTemplateBuilder,
+                     val restTemplateBuilder: RestTemplateBuilder,
 
                      @Autowired
                      val teamRepository: TeamRepository,
@@ -30,15 +33,17 @@ class OnboardService(@Autowired
     private val mapper = ObjectMapper()
 
     fun onboardCompletedSeason(leagueId: Int, year: Int) {
+        //TODO: Error handling, success/fail states
+
         //cache team entities as we create them to avoid looking up on each iteration
-        val teamsSaved = mutableMapOf<Long, Team>()
+        val teamsSaved = mutableMapOf<Int, Team>()
         for (week in 1..16) {
-            val response: ResponseEntity<String> = restTemplate.getForEntity(UrlGenerator.generateUrl(leagueId, year, week))
+            val response: ResponseEntity<String> = restTemplate.getForEntity(UrlGenerator.generateEspnUrl(leagueId, year, week))
             val root = mapper.readTree(response.body)
 
             val teams = root.path("teams")
             for (team in teams) {
-                val teamId = team.path("id").longValue()
+                val teamId = team.path("id").intValue()
 
                 //Save team entities on first week
                 val teamEntity: Team
@@ -46,18 +51,18 @@ class OnboardService(@Autowired
                     val teamName = "${team.path("location").textValue()} ${team.path("nickname").textValue()}"
                     val teamAbbrev = team.path("abbrev").textValue()
 
-                    teamEntity = Team(IdGenerator.id, teamId, year, leagueId, teamName, teamAbbrev)
+                    val teamObject = Team(teamId = teamId, year = year, leagueId = leagueId, teamName = teamName, teamAbbrev = teamAbbrev)
+                    teamEntity = teamRepository.save(teamObject)
                     teamsSaved[teamId] = teamEntity
-
-                    teamRepository.save(teamEntity)
                 } else {
+                    //TODO: do something better than explode here
                     teamEntity = teamsSaved[teamId] ?: throw Exception("New ID found in week $week. Should not happen.")
                 }
 
                 val startingPlayers = team.path("roster").path("entries")
                 val rosterPlayerEntities = getPlayersFromJson(startingPlayers, week)
 
-                rosterSnapshotRepository.save(RosterSnapshot(IdGenerator.id, week, teamEntity, rosterPlayerEntities))
+                rosterSnapshotRepository.save(RosterSnapshot(week = week, team = teamEntity, players = rosterPlayerEntities))
             }
 
             println("Finished adding week $week for league $leagueId")
@@ -89,31 +94,24 @@ class OnboardService(@Autowired
     }
 
     private fun getRosterSlot(slotId: Int) = when (slotId) {
-        0 -> "QB"
-        2 -> "RB"
-        4 -> "WR"
-        6 -> "TE"
-        16 -> "D/ST"
-        17 -> "K"
-        20 -> "BENCH"
-        23 -> "FLEX"
-        else -> "UNKNOWN"
+        0 -> RosterSlot.QB
+        2 -> RosterSlot.RB
+        4 -> RosterSlot.WR
+        6 -> RosterSlot.TE
+        16 -> RosterSlot.DST
+        17 -> RosterSlot.K
+        20 -> RosterSlot.BENCH
+        23 -> RosterSlot.FLEX
+        else -> RosterSlot.UNKNOWN
     }
 
     private fun getPosition(positionId: Int) = when (positionId) {
-        1 -> "QB"
-        2 -> "RB"
-        3 -> "WR"
-        4 -> "TE"
-        16 -> "D/ST"
-        5 -> "K"
-        else -> "UNKNOWN"
-    }
-
-    //TODO: Better id gen
-    private object IdGenerator {
-        var id = 0L
-            get() = field++
-            private set
+        1 -> Position.QB
+        2 -> Position.RB
+        3 -> Position.WR
+        4 -> Position.TE
+        16 -> Position.DST
+        5 -> Position.K
+        else -> Position.UNKNOWN
     }
 }

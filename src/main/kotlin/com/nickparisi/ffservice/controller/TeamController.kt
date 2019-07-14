@@ -6,13 +6,12 @@ import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/team")
-//TODO: Our controllers should return proper HTTP responses
 class TeamController(val repository: TeamRepository) {
 
     @GetMapping("/{teamId}")
-    fun getById(@PathVariable teamId: Long) = repository.findById(teamId)
+    fun getById(@PathVariable teamId: String) = repository.findById(teamId)
 
-    @GetMapping("/{leagueId}/{year}")
+    @GetMapping("/{year}/{leagueId}")
     fun getByLeagueIdAndSeason(
             @PathVariable leagueId: Int,
             @PathVariable year: Int

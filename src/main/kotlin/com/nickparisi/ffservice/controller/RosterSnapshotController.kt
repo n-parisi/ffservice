@@ -7,17 +7,16 @@ import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/rostersnap")
-//TODO: Our controllers should return proper HTTP responses
 class RosterSnapshotController(val rosterSnapshotRepository: RosterSnapshotRepository,
                                val teamRepository: TeamRepository
 ) {
 
     @GetMapping("/{rosterId}")
-    fun getById(@PathVariable rosterId: Long) = rosterSnapshotRepository.findById(rosterId)
+    fun getById(@PathVariable rosterId: String) = rosterSnapshotRepository.findById(rosterId)
 
-    @GetMapping("/teamId/{teamId}")
-    fun getByLeagueIdAndSeason(@PathVariable teamId: Long): List<RosterSnapshot> {
-        val team = teamRepository.findById(teamId)
+    @GetMapping("/teamId/{uuid}")
+    fun getByLeagueIdAndSeason(@PathVariable uuid: String): List<RosterSnapshot> {
+        val team = teamRepository.findById(uuid)
         return if (team.isPresent) rosterSnapshotRepository.findByTeam(team.get()) else emptyList()
     }
 }

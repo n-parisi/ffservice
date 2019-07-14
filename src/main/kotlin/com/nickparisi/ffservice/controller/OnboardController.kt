@@ -5,14 +5,14 @@ import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/onboard")
-//TODO: Our controllers should return proper HTTP responses
 class OnboardController(val service: OnboardService) {
 
     @PostMapping
-    fun onboardCompletedSeason(@RequestBody onboardRequest: OnboardRequest): String {
+    fun onboardCompletedSeason(@RequestBody onboardRequest: OnboardRequest): OnboardResponse {
         service.onboardCompletedSeason(onboardRequest.leagueId, onboardRequest.season)
-        return "Success!"
+        return OnboardResponse("Success!", true)
     }
 
     class OnboardRequest(val leagueId: Int, val season: Int)
+    class OnboardResponse(val message: String, val onboarded: Boolean)
 }

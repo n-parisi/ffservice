@@ -1,4 +1,4 @@
-### Send POST request with json body
+### Onboard my 2018 league
 POST http://localhost:8080/onboard
 Content-Type: application/json
 
@@ -7,20 +7,20 @@ Content-Type: application/json
   "season": 2018
 }
 
-### Get request with a header
-GET http://localhost:8080/team/517437/2018
+### Get all teams for my 2018 league
+GET http://localhost:8080/team/2018/517437
 Accept: application/json
 
-### Get request with a header
-GET http://localhost:8080/team/14
+### Get specific team by uuid
+GET http://localhost:8080/team/5d2a8016ef19194dfd2b7e1d
 Accept: application/json
 
-### Get request with a header
-GET http://localhost:8080/rostersnap/teamId/14
+### Get all roster snapshots for team uuid
+GET http://localhost:8080/rostersnap/teamId/5d2a8016ef19194dfd2b7e1d
 Accept: application/json
 
-### Get request with a header
-GET http://localhost:8080/rostersnap/47
+### Get specific roster snapshot by uuid
+GET http://localhost:8080/rostersnap/5d2a8023ef19194dfd2b7e81
 Accept: application/json
 
 ###
