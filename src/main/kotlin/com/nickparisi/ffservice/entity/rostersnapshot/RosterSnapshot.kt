@@ -6,9 +6,8 @@ import com.nickparisi.ffservice.entity.team.Team
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
 
-
-//better data types for date/time objects
 @Document
+//opposing roster snap
 data class RosterSnapshot(
         @Id
         val uuid: String? = null,

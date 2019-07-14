@@ -15,7 +15,7 @@ class RosterSnapshotController(val rosterSnapshotRepository: RosterSnapshotRepos
     fun getById(@PathVariable rosterId: String) = rosterSnapshotRepository.findById(rosterId)
 
     @GetMapping("/teamId/{uuid}")
-    fun getByLeagueIdAndSeason(@PathVariable uuid: String): List<RosterSnapshot> {
+    fun getByTeam(@PathVariable uuid: String): List<RosterSnapshot> {
         val team = teamRepository.findById(uuid)
         return if (team.isPresent) rosterSnapshotRepository.findByTeam(team.get()) else emptyList()
     }

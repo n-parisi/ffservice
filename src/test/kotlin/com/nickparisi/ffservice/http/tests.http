@@ -1,3 +1,5 @@
+//TODO: Create proper unit tests and stop checking this in
+
 ### Onboard my 2018 league
 POST http://localhost:8080/onboard
 Content-Type: application/json
@@ -11,16 +13,20 @@ Content-Type: application/json
 GET http://localhost:8080/team/2018/517437
 Accept: application/json
 
+### Get schedule for my 2018 league
+GET http://localhost:8080/schedule/2018/517437
+Accept: application/json
+
 ### Get specific team by uuid
-GET http://localhost:8080/team/5d2a8016ef19194dfd2b7e1d
+GET http://localhost:8080/team/5d2b3f38ef19195f4210ef11
 Accept: application/json
 
 ### Get all roster snapshots for team uuid
-GET http://localhost:8080/rostersnap/teamId/5d2a8016ef19194dfd2b7e1d
+GET http://localhost:8080/rostersnap/teamId/5d2b3f38ef19195f4210ef11
 Accept: application/json
 
 ### Get specific roster snapshot by uuid
-GET http://localhost:8080/rostersnap/5d2a8023ef19194dfd2b7e81
+GET http://localhost:8080/rostersnap/5d2b3f75ef19195f4210efa1
 Accept: application/json
 
 ###

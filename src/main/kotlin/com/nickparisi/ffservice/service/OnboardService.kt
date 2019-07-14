@@ -14,6 +14,9 @@ import com.nickparisi.ffservice.entity.rostersnapshot.RosterSnapshotRepository
 import com.nickparisi.ffservice.entity.team.Team
 import com.nickparisi.ffservice.entity.team.TeamRepository
 import com.nickparisi.ffservice.entity.enums.RosterSlot
+import com.nickparisi.ffservice.entity.schedule.Matchup
+import com.nickparisi.ffservice.entity.schedule.Schedule
+import com.nickparisi.ffservice.entity.schedule.ScheduleRepository
 import org.springframework.beans.factory.annotation.Autowired
 import java.time.LocalDate
 
@@ -25,7 +28,10 @@ class OnboardService(@Autowired
                      val teamRepository: TeamRepository,
 
                      @Autowired
-                     val rosterSnapshotRepository: RosterSnapshotRepository
+                     val rosterSnapshotRepository: RosterSnapshotRepository,
+
+                     @Autowired
+                     val scheduleRepository: ScheduleRepository
 
 ) {
 
@@ -34,6 +40,7 @@ class OnboardService(@Autowired
 
     fun onboardCompletedSeason(leagueId: Int, year: Int) {
         //TODO: Error handling, success/fail states
+        //TODO: do something better than throw exceptions
 
         //cache team entities as we create them to avoid looking up on each iteration
         val teamsSaved = mutableMapOf<Int, Team>()
@@ -55,7 +62,6 @@ class OnboardService(@Autowired
                     teamEntity = teamRepository.save(teamObject)
                     teamsSaved[teamId] = teamEntity
                 } else {
-                    //TODO: do something better than explode here
                     teamEntity = teamsSaved[teamId] ?: throw Exception("New ID found in week $week. Should not happen.")
                 }
 
@@ -63,6 +69,48 @@ class OnboardService(@Autowired
                 val rosterPlayerEntities = getPlayersFromJson(startingPlayers, week)
 
                 rosterSnapshotRepository.save(RosterSnapshot(week = week, team = teamEntity, players = rosterPlayerEntities))
+            }
+
+            //Save schedule on week 1
+            if (week == 1) {
+                val schedule = root.path("schedule")
+
+                val matchups = mutableListOf<Matchup>()
+                for (matchup in schedule) {
+                    val awayNode = matchup.path("away")
+                    val homeNode = matchup.path("home")
+
+                    val awayTeam: Team?
+                    val awayScore: Double?
+                    if (awayNode != null) {
+                        val awayTeamId = awayNode.path("teamId").intValue()
+                        awayTeam = teamsSaved[awayTeamId]
+                        awayScore = awayNode.path("totalPoints").doubleValue()
+                    } else {
+                        awayTeam = null
+                        awayScore = null
+                    }
+
+                    val homeTeam: Team?
+                    val homeScore: Double?
+                    if (homeNode != null) {
+                        val homeTeamId = homeNode.path("teamId").intValue()
+                        homeTeam = teamsSaved[homeTeamId]
+                        homeScore = homeNode.path("totalPoints").doubleValue()
+                    } else {
+                        homeTeam = null
+                        homeScore = null
+                    }
+
+                    val matchupPeriodId = matchup.path("matchupPeriodId").intValue()
+                    val winner = matchup.path("winner").toString().removeSurrounding("\"", "\"")
+
+                    val matchupEntity = Matchup(matchupPeriodId, awayTeam, homeTeam, awayScore, homeScore, winner)
+                    matchups.add(matchupEntity)
+                }
+
+                val scheduleEntity = Schedule(year = year, leagueId =  leagueId, matchups =  matchups)
+                scheduleRepository.save(scheduleEntity)
             }
 
             println("Finished adding week $week for league $leagueId")
